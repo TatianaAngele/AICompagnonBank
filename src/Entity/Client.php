@@ -2,21 +2,44 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use App\Repository\ClientRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Get(),
+        new Post(),
+        new Put(),
+        new Delete(),
+        new Patch()
+    ],
+    normalizationContext: ['groups' => ['user:read', 'client:read']],
+    denormalizationContext: ['groups' => ['user:write', 'client:write']]
+)]
 class Client extends Utilisateur
 {
     #[ORM\Column(length: 20)]
+    #[Groups(['client:read', 'client:write'])]
     private ?string $numCompte = null;
 
     #[ORM\Column(length: 12)]
+    #[Groups(['client:read', 'client:write'])]
     private ?string $cin = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['client:read', 'client:write'])]
     private ?string $activite = null;
 
     /**
