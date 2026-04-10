@@ -2,24 +2,43 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
 use App\Repository\NotificationRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: NotificationRepository::class)]
+#[ORM\HasLifecycleCallbacks]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new Post(),
+        new Delete()
+    ],
+    normalizationContext: ['groups' => ['notification:read', 'aianalyser:read']],
+    denormalizationContext: ['groups' => ['notification:write']]
+)]
 class Notification
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['notification:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['notification:read', 'notification:write'])]
     private ?string $message = null;
 
     #[ORM\Column]
+    #[Groups(['notification:read'])]
     private ?\DateTime $dateEnvoi = null;
 
     #[ORM\ManyToOne(inversedBy: 'notification')]
+    #[Groups(['notification:read', 'aianalyser:read', 'notification:write'])]
     private ?AIAnalyser $aIAnalyser = null;
 
     public function getId(): ?int
@@ -44,9 +63,12 @@ class Notification
         return $this->dateEnvoi;
     }
 
-    public function setDateEnvoi(\DateTime $dateEnvoi): static
+    #[ORM\PrePersist]
+    public function setDateEnvoi(): static
     {
-        $this->dateEnvoi = $dateEnvoi;
+        if ($this->dateEnvoi == null) {
+            $this->dateEnvoi = new \DateTime();
+        }
 
         return $this;
     }
