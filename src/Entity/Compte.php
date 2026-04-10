@@ -2,12 +2,33 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use App\Repository\CompteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Patch;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CompteRepository::class)]
+#[ORM\HasLifecycleCallbacks]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new Post(),
+        new GetCollection(),
+        new Put(),
+        new Patch(),
+        new Delete()
+    ],
+    normalizationContext: ['groups' => ['compte:read', 'client:read', 'user:read']],
+    denormalizationContext: ['groups' =>  ['compte:write']]
+)]
 class Compte
 {
     #[ORM\Id]
@@ -16,15 +37,19 @@ class Compte
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Groups(['compte:read', 'compte:write'])]
     private ?int $solde = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['compte:read', 'compte:write'])]
     private ?string $typeCompte = null;
 
     #[ORM\Column]
+    #[Groups(['compte:read'])]
     private ?\DateTime $dateCreation = null;
 
     #[ORM\ManyToOne(inversedBy: 'compte')]
+    #[Groups(['client:read', 'user:read', 'compte:write'])]
     private ?Client $client = null;
 
     /**
@@ -72,9 +97,12 @@ class Compte
         return $this->dateCreation;
     }
 
-    public function setDateCreation(\DateTime $dateCreation): static
+    #[ORM\PrePersist]
+    public function setDateCreation(): static
     {
-        $this->dateCreation = $dateCreation;
+        if ($this->dateCreation == null) {
+            $this->dateCreation = new \DateTime();
+        }
 
         return $this;
     }
