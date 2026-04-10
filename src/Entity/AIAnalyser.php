@@ -2,27 +2,49 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use App\Repository\AIAnalyserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: AIAnalyserRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new Post(),
+        new Put(),
+        new Delete(),
+        new Patch()
+    ],
+    normalizationContext: ['groups' => ['aianalyser:read']],
+    denormalizationContext: ['groups' => ['aianalyser:write']]
+)]
 class AIAnalyser
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['aianalyser:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['aianalyser:read', 'aianalyser:write'])]
     private ?string $modeleAnalyse = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['aianalyser:read', 'aianalyser:write'])]
     private ?string $modeleRecommendation = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2)]
+    #[Groups(['aianalyser:read', 'aianalyser:write'])]
     private ?string $seuilAnomalie = null;
 
     /**
