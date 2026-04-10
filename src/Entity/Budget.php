@@ -12,7 +12,6 @@ use App\Repository\BudgetRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-
 #[ORM\Entity(repositoryClass: BudgetRepository::class)]
 #[ApiResource(
     operations: [
@@ -22,26 +21,27 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Delete(),
         new GetCollection()
     ],
-    normalizationContext: ['groups' => ['budget:read', 'client:read']],
-    denormalizationContext: ['groups' => ['budget:write', 'client:write']]
+    normalizationContext: ['groups' => ['budget:read', 'client:read', 'user:read']],
+    denormalizationContext: ['groups' => ['budget:write']]
 )]
 class Budget
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['budget:read'])]
     private ?int $id = null;
 
     #[ORM\Column]
-    #[Groups(['budget:read', 'client:write'])]
+    #[Groups(['budget:read', 'budget:write'])]
     private ?int $montantMax = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['budget:read', 'client:write'])]
+    #[Groups(['budget:read', 'budget:write'])]
     private ?string $categorieBudget = null;
 
     #[ORM\ManyToOne(inversedBy: 'budget')]
-    #[Groups(['budget:read', 'client:write'])]
+    #[Groups(['client:read', 'user:read', 'budget:write'])]
     private ?Client $client = null;
 
     public function getId(): ?int
@@ -57,7 +57,6 @@ class Budget
     public function setMontantMax(int $montantMax): static
     {
         $this->montantMax = $montantMax;
-
         return $this;
     }
 
@@ -69,7 +68,6 @@ class Budget
     public function setCategorieBudget(string $categorieBudget): static
     {
         $this->categorieBudget = $categorieBudget;
-
         return $this;
     }
 
@@ -81,7 +79,6 @@ class Budget
     public function setClient(?Client $client): static
     {
         $this->client = $client;
-
         return $this;
     }
 }
